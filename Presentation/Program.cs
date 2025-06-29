@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Domain;
 using Application.Services;
+using Infrastructure; // da bi mogao da koristiš FileLogger
 
 namespace Presentation
 {
@@ -52,57 +53,90 @@ namespace Presentation
 
             //Console.WriteLine("\nTest EP-3 uspešno završen.");
 
+            //// ===== EP-4 testovi (zakomentarisano) =====
+            //var devices = new List<Device>
+            //{
+            //    new Device("1", 18.5),
+            //    new Device("2", 18.8),
+            //    new Device("3", 19.0),
+            //    new Device("4", 18.7)
+            //};
 
-            // ===== EP-4 testovi =====
+            //var heater = new Heater();
 
-            // Inicijalizacija uređaja
-            var devices = new List<Device>
-            {
-                new Device("1", 18.5),
-                new Device("2", 18.8),
-                new Device("3", 19.0),
-                new Device("4", 18.7)
-            };
+            //var deviceService = new DeviceService(devices);
+            //var heaterService = new HeaterService(heater);
+            //var regulatorService = new RegulatorService(deviceService, heaterService);
 
-            var heater = new Heater();
+            //regulatorService.SetDayNightRanges((6, 22), (22, 6)); // Dan: 6-22h, Noć: 22-6h
+            //regulatorService.SetDesiredTemperatures(21.0, 18.0);  // Dan: 21°C, Noć: 18°C
 
-            // Kreiramo servise
-            var deviceService = new DeviceService(devices);
-            var heaterService = new HeaterService(heater);
-            var regulatorService = new RegulatorService(deviceService, heaterService);
+            //Console.WriteLine("\n=== EP-4: Test automatske regulacije ===");
+            //Console.WriteLine($"Trenutno vreme: {DateTime.Now}");
+            //Console.WriteLine("Trenutne temperature uređaja:");
+            //foreach (var d in devices)
+            //    Console.WriteLine($"ID: {d.Id}, Temp: {d.CurrentTemperature}°C");
 
-            // Postavljamo željenu temperaturu i dnevni/noćni režim
-            regulatorService.SetDayNightRanges((6, 22), (22, 6)); // Dan: 6-22h, Noć: 22-6h
-            regulatorService.SetDesiredTemperatures(21.0, 18.0);  // Dan: 21°C, Noć: 18°C
+            //foreach (var d in devices)
+            //    regulatorService.ProcessTemperature(d.Id, d.CurrentTemperature);
 
-            // Simulacija - prosečna temperatura je 18.75°C, dan je, željena je 21°C → grejač treba da se upali
-            Console.WriteLine("\n=== EP-4: Test automatske regulacije ===");
-            Console.WriteLine($"Trenutno vreme: {DateTime.Now}");
-            Console.WriteLine("Trenutne temperature uređaja:");
-            foreach (var d in devices)
-                Console.WriteLine($"ID: {d.Id}, Temp: {d.CurrentTemperature}°C");
+            //Console.WriteLine("Prosečna temperatura: " + (devices[0].CurrentTemperature + devices[1].CurrentTemperature + devices[2].CurrentTemperature + devices[3].CurrentTemperature) / 4.0 + "°C");
+            //Console.WriteLine($"Grejač status posle regulacije: {(heaterService.IsHeaterOn() ? "UKLJUČEN" : "ISKLJUČEN")}");
 
-            // "Ručna" simulacija - kao da su svi uređaji poslali temperaturu regulatoru
-            foreach (var d in devices)
-                regulatorService.ProcessTemperature(d.Id, d.CurrentTemperature);
+            //devices[0].SetTemperature(21.5);
+            //devices[1].SetTemperature(21.2);
+            //devices[2].SetTemperature(21.0);
+            //devices[3].SetTemperature(21.1);
 
-            Console.WriteLine("Prosečna temperatura: " + (devices[0].CurrentTemperature + devices[1].CurrentTemperature + devices[2].CurrentTemperature + devices[3].CurrentTemperature) / 4.0 + "°C");
-            Console.WriteLine($"Grejač status posle regulacije: {(heaterService.IsHeaterOn() ? "UKLJUČEN" : "ISKLJUČEN")}");
+            //Console.WriteLine("\nSimulacija: Svi uređaji su sada iznad željene temperature.");
+            //foreach (var d in devices)
+            //    regulatorService.ProcessTemperature(d.Id, d.CurrentTemperature);
 
-            // Sada povećaj temperaturu uređaja iznad željene i simuliraj ponovno procesiranje
-            devices[0].SetTemperature(21.5);
-            devices[1].SetTemperature(21.2);
-            devices[2].SetTemperature(21.0);
-            devices[3].SetTemperature(21.1);
+            //Console.WriteLine("Prosečna temperatura: " + (devices[0].CurrentTemperature + devices[1].CurrentTemperature + devices[2].CurrentTemperature + devices[3].CurrentTemperature) / 4.0 + "°C");
+            //Console.WriteLine($"Grejač status posle regulacije: {(heaterService.IsHeaterOn() ? "UKLJUČEN" : "ISKLJUČEN")}");
 
-            Console.WriteLine("\nSimulacija: Svi uređaji su sada iznad željene temperature.");
-            foreach (var d in devices)
-                regulatorService.ProcessTemperature(d.Id, d.CurrentTemperature);
+            //Console.WriteLine("\nTest EP-4 uspešno završen.");
 
-            Console.WriteLine("Prosečna temperatura: " + (devices[0].CurrentTemperature + devices[1].CurrentTemperature + devices[2].CurrentTemperature + devices[3].CurrentTemperature) / 4.0 + "°C");
-            Console.WriteLine($"Grejač status posle regulacije: {(heaterService.IsHeaterOn() ? "UKLJUČEN" : "ISKLJUČEN")}");
+            // ===== EP-5 testovi =====
 
-            Console.WriteLine("\nTest EP-4 uspešno završen.");
+            // Inicijalizuj loggere
+            var logger = new FileLogger("dnevnik.txt");
+            var cycleLogger = new HeaterCycleLogger("grejac-log.txt");
+
+            logger.Log("INFO", "Aplikacija pokrenuta (EP-5 test).");
+
+            var heaterEp5 = new Heater();
+            logger.Log("INFO", "Grejač kreiran.");
+
+            // Simuliramo uključivanje grejača
+            heaterEp5.TurnOn();
+            logger.Log("INFO", "Grejač uključen.");
+
+            Console.WriteLine("Grejač uključen, čeka se 5 sekundi za simulaciju rada...");
+            Thread.Sleep(5000);
+
+            // Simuliramo isključivanje grejača
+            heaterEp5.TurnOff();
+            logger.Log("INFO", "Grejač isključen.");
+
+            // Simulacija ciklusa od 5 sekundi
+            DateTime start = DateTime.Now.AddSeconds(-5);
+            DateTime end = DateTime.Now;
+            TimeSpan trajanje = end - start;
+            double resurs = trajanje.TotalSeconds * 0.1; // npr. 0.1 jedinica po sekundi
+
+            var cycleInfo = new HeaterCycleInfo(
+                start,      // startTime
+                end,        // endTime
+                trajanje,   // duration
+                resurs      // resourceUsed
+            );
+            cycleLogger.LogCycle(cycleInfo);
+
+            logger.Log("INFO", "Ciklus rada grejača upisan u grejac-log.txt.");
+            logger.Log("INFO", "Aplikacija završena (EP-5 test).");
+
+            Console.WriteLine("\nTest EP-5 uspešno završen. Proveri dnevnik.txt i grejac-log.txt za evidenciju događaja.");
         }
     }
 }
