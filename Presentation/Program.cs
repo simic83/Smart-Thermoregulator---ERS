@@ -97,46 +97,87 @@ namespace Presentation
 
             //Console.WriteLine("\nTest EP-4 uspešno završen.");
 
-            // ===== EP-5 testovi =====
+            //// ===== EP-5 testovi =====
 
-            // Inicijalizuj loggere
-            var logger = new FileLogger("dnevnik.txt");
-            var cycleLogger = new HeaterCycleLogger("grejac-log.txt");
+            //// Inicijalizuj loggere
+            //var logger = new FileLogger("dnevnik.txt");
+            //var cycleLogger = new HeaterCycleLogger("grejac-log.txt");
 
-            logger.Log("INFO", "Aplikacija pokrenuta (EP-5 test).");
+            //logger.Log("INFO", "Aplikacija pokrenuta (EP-5 test).");
 
-            var heaterEp5 = new Heater();
-            logger.Log("INFO", "Grejač kreiran.");
+            //var heaterEp5 = new Heater();
+            //logger.Log("INFO", "Grejač kreiran.");
 
-            // Simuliramo uključivanje grejača
-            heaterEp5.TurnOn();
-            logger.Log("INFO", "Grejač uključen.");
+            //// Simuliramo uključivanje grejača
+            //heaterEp5.TurnOn();
+            //logger.Log("INFO", "Grejač uključen.");
 
-            Console.WriteLine("Grejač uključen, čeka se 5 sekundi za simulaciju rada...");
-            Thread.Sleep(5000);
+            //Console.WriteLine("Grejač uključen, čeka se 5 sekundi za simulaciju rada...");
+            //Thread.Sleep(5000);
 
-            // Simuliramo isključivanje grejača
-            heaterEp5.TurnOff();
-            logger.Log("INFO", "Grejač isključen.");
+            //// Simuliramo isključivanje grejača
+            //heaterEp5.TurnOff();
+            //logger.Log("INFO", "Grejač isključen.");
 
-            // Simulacija ciklusa od 5 sekundi
-            DateTime start = DateTime.Now.AddSeconds(-5);
-            DateTime end = DateTime.Now;
-            TimeSpan trajanje = end - start;
-            double resurs = trajanje.TotalSeconds * 0.1; // npr. 0.1 jedinica po sekundi
+            //// Simulacija ciklusa od 5 sekundi
+            //DateTime start = DateTime.Now.AddSeconds(-5);
+            //DateTime end = DateTime.Now;
+            //TimeSpan trajanje = end - start;
+            //double resurs = trajanje.TotalSeconds * 0.1; // npr. 0.1 jedinica po sekundi
 
-            var cycleInfo = new HeaterCycleInfo(
-                start,      // startTime
-                end,        // endTime
-                trajanje,   // duration
-                resurs      // resourceUsed
-            );
-            cycleLogger.LogCycle(cycleInfo);
+            //var cycleInfo = new HeaterCycleInfo(
+            //    start,      // startTime
+            //    end,        // endTime
+            //    trajanje,   // duration
+            //    resurs      // resourceUsed
+            //);
+            //cycleLogger.LogCycle(cycleInfo);
 
-            logger.Log("INFO", "Ciklus rada grejača upisan u grejac-log.txt.");
-            logger.Log("INFO", "Aplikacija završena (EP-5 test).");
+            //logger.Log("INFO", "Ciklus rada grejača upisan u grejac-log.txt.");
+            //logger.Log("INFO", "Aplikacija završena (EP-5 test).");
 
-            Console.WriteLine("\nTest EP-5 uspešno završen. Proveri dnevnik.txt i grejac-log.txt za evidenciju događaja.");
+            //Console.WriteLine("\nTest EP-5 uspešno završen. Proveri dnevnik.txt i grejac-log.txt za evidenciju događaja.");
+
+            var devices = new List<Device>
+            {
+                new Device("1", 20.0),
+                new Device("2", 20.0),
+                new Device("3", 20.0),
+                new Device("4", 20.0)
+            };
+
+            var heater = new Heater();
+
+            var deviceService = new DeviceService(devices);
+            var heaterService = new HeaterService(heater);
+            var regulatorService = new RegulatorService(deviceService, heaterService);
+
+
+            // ===== EP-6 testovi =====
+            Console.WriteLine("\nEP-6: Unos režima rada i željenih temperatura.");
+
+            Console.Write("Unesite početak dnevnog režima (0-23): ");
+            int dayStart = int.Parse(Console.ReadLine() ?? "6");
+
+            Console.Write("Unesite kraj dnevnog režima (0-23): ");
+            int dayEnd = int.Parse(Console.ReadLine() ?? "22");
+
+            // Noćni režim je automatski ostatak dana
+            var dayRange = (dayStart, dayEnd);
+            var nightRange = (dayEnd, dayStart);
+
+            Console.Write("Unesite željenu temperaturu za DAN: ");
+            double dayTemp = double.Parse(Console.ReadLine() ?? "21");
+
+            Console.Write("Unesite željenu temperaturu za NOĆ: ");
+            double nightTemp = double.Parse(Console.ReadLine() ?? "18");
+
+            // Pretpostavljamo da su servisi već inicijalizovani (regulatorService...)
+            regulatorService.SetDayNightRanges(dayRange, nightRange);
+            regulatorService.SetDesiredTemperatures(dayTemp, nightTemp);
+
+            Console.WriteLine($"Režimi su podešeni: DAN {dayStart}-{dayEnd}h na {dayTemp}°C, NOĆ {dayEnd}-{dayStart}h na {nightTemp}°C.");
+            Console.WriteLine("EP-6 test završen.");
         }
     }
 }
