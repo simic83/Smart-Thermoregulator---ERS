@@ -1,26 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Domain;
 
-public class HeaterCycleLogger
+namespace Infrastructure
 {
-    private readonly string _filePath;
-    private readonly object _lock = new object();
-
-    public HeaterCycleLogger(string filePath = "grejac-log.txt")
+    public class HeaterCycleLogger
     {
-        _filePath = filePath;
-    }
+        private readonly string _filePath;
+        private readonly object _lock = new object();
 
-    public void LogCycle(HeaterCycleInfo cycle)
-    {
-        string line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {cycle}";
-        lock (_lock)
+        public HeaterCycleLogger(string filePath = "grejac-log.txt")
         {
-            System.IO.File.AppendAllText(_filePath, line + Environment.NewLine);
+            _filePath = filePath;
+        }
+
+        public void LogCycle(HeaterCycleInfo cycle)
+        {
+            string line = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {cycle}";
+            lock (_lock)
+            {
+                System.IO.File.AppendAllText(_filePath, line + Environment.NewLine);
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Application.Interfaces;
 using Domain;
+using Infrastructure;
 
 namespace Application.Services
 {
@@ -15,25 +16,29 @@ namespace Application.Services
 
         private readonly IDeviceService _deviceService;
         private readonly IHeaterService _heaterService;
+        private readonly FileLogger _logger;
 
         public string CurrentMode { get; private set; } = "noc";
 
-        public RegulatorService(IDeviceService deviceService, IHeaterService heaterService)
+        public RegulatorService(IDeviceService deviceService, IHeaterService heaterService, FileLogger logger)
         {
             _deviceService = deviceService;
             _heaterService = heaterService;
+            _logger = logger;
         }
 
         public void SetDayNightRanges((int, int) day, (int, int) night)
         {
             _dayRange = day;
             _nightRange = night;
+            _logger.Log("INFO", $"Podešen dnevni režim: {day.Item1}-{day.Item2}h, noćni: {night.Item1}-{night.Item2}h");
         }
 
         public void SetDesiredTemperatures(double day, double night)
         {
             _desiredDayTemperature = day;
             _desiredNightTemperature = night;
+            _logger.Log("INFO", $"Podešena temperatura: dan {day}, noć {night}");
         }
 
         /// <summary>
@@ -42,6 +47,8 @@ namespace Application.Services
         public void ProcessTemperature(string deviceId, double value)
         {
             _deviceService.UpdateTemperature(deviceId, value);
+            _logger.Log("INFO", $"Uređaj {deviceId} poslao temperaturu: {value:F2}°C");
+
             var devices = _deviceService.GetAllDevices();
             double avgTemp = devices.Average(d => d.CurrentTemperature);
             double desiredTemp = GetDesiredTemperatureByCurrentTime();
@@ -50,6 +57,7 @@ namespace Application.Services
             {
                 if (!_heaterService.IsHeaterOn())
                 {
+                    _logger.Log("INFO", "Regulator: Prosečna temperatura ispod željene, šaljem komandu za UKLJUČENJE grejača.");
                     _heaterService.TurnOn();
                     _deviceService.StartHeatingAll();
                 }
@@ -58,6 +66,7 @@ namespace Application.Services
             {
                 if (_heaterService.IsHeaterOn())
                 {
+                    _logger.Log("INFO", "Regulator: Prosečna temperatura iznad željene, šaljem komandu za ISKLJUČENJE grejača.");
                     _heaterService.TurnOff();
                     _deviceService.StopHeatingAll();
                 }
