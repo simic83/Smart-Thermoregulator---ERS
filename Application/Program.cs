@@ -16,14 +16,12 @@ namespace Application
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            // Dependency Injection & Initialization
             var deviceRepository = new DevicesRepository();
             var loggerService = new FileLoggerService();
             var devicesService = new DevicesService(deviceRepository, loggerService);
             var heaterService = new HeaterService(loggerService);
             var regulatorService = new RegulatorService(heaterService, devicesService, loggerService);
 
-            // Initialize test devices
             DeviceInitializer.CreateTestDevices(devicesService, loggerService);
 
             // Start Menu
