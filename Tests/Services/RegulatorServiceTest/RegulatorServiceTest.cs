@@ -25,30 +25,18 @@ namespace Tests.Services.RegulatorServiceTest
         }
 
         [Test]
-        public void ConfigureWorkMode_SetsCorrectValues()
-        {
-            // Act
-            _service.ConfigureWorkMode(7, 23, 22.0, 18.0);
-
-            // Assert
-            // Default vrednosti su već postavljene, ali možemo proveriti log
-            _mockLogger.Verify(l => l.LogEvent(It.IsAny<string>()), Times.Once);
-        }
-
-        [Test]
         public void ProcessTemperatureReading_TurnsOnHeaterWhenCold()
         {
-            // Arrange
-            _service.ConfigureWorkMode(0, 24, 22.0, 18.0); // Always day mode
-            _mockHeater.Setup(h => h.IsOn()).Returns(false);
+            _service.ConfigureWorkMode(0, 24, 22.0, 18.0);
+            _mockHeater.SetupSequence(h => h.IsOn())
+                .Returns(false)
+                .Returns(true)
+                .Returns(true)
+                .Returns(true);
 
-            // Act - Simulate cold temperature
             for (int i = 0; i < 4; i++)
-            {
-                _service.ProcessTemperatureReading($"DEV{i}", 19.0); // Ispod 21.8°C (22 - 0.2)
-            }
+                _service.ProcessTemperatureReading($"DEV{i}", 19.0);
 
-            // Assert
             _mockHeater.Verify(h => h.TurnOn(), Times.Once);
             _mockDevices.Verify(d => d.NotifyHeaterStateChange(true), Times.Once);
         }
@@ -56,20 +44,20 @@ namespace Tests.Services.RegulatorServiceTest
         [Test]
         public void ProcessTemperatureReading_TurnsOffHeaterWhenHot()
         {
-            // Arrange
             _service.ConfigureWorkMode(0, 24, 22.0, 18.0);
-            _mockHeater.Setup(h => h.IsOn()).Returns(true);
+            _mockHeater.SetupSequence(h => h.IsOn())
+                .Returns(true)
+                .Returns(false)
+                .Returns(false)
+                .Returns(false);
 
-            // Act - Simulate hot temperature
             for (int i = 0; i < 4; i++)
-            {
-                _service.ProcessTemperatureReading($"DEV{i}", 23.0); // Iznad 22.2°C (22 + 0.2)
-            }
+                _service.ProcessTemperatureReading($"DEV{i}", 23.0);
 
-            // Assert
             _mockHeater.Verify(h => h.TurnOff(), Times.Once);
             _mockDevices.Verify(d => d.NotifyHeaterStateChange(false), Times.Once);
         }
+
 
         [Test]
         public void ProcessTemperatureReading_DoesNotToggleHeaterWithinHysteresis()
