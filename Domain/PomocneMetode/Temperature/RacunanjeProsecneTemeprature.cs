@@ -15,7 +15,7 @@ namespace Domain.PomocneMetode.Temperature
             if (pocitanja == null || pocitanja.Count == 0)
                 return 20.0; // Default temperatura
 
-            // Uzimamo samo najnovija očitavanja (poslednja 4)
+            // Uzimamo samo najnovija očitavanja (poslednja 4, od svakog po 1)
             var skorijaPocitanja = pocitanja
                 .OrderByDescending(p => p.Vreme)
                 .Take(4)

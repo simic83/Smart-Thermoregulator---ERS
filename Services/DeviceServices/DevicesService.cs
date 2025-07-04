@@ -9,10 +9,6 @@ using Domain.Repositories.DevicesRepositories;
 
 namespace Services.DeviceServices
 {
-    using Domain.Models;
-    using Domain.Services;
-    using Domain.Repositories.DevicesRepositories;
-
     public class DevicesService : IDevicesService
     {
         private readonly IDeviceRepository _repository;

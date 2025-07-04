@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Domain.Models;
+using Domain.Services;
 
 namespace Services.HeaterServices
 {
-    using Domain.Models;
-    using Domain.Services;
-
     public class HeaterService : IHeaterService
     {
         private readonly Heater _heater;

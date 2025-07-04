@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Domain.Models;
+using Domain.Services;
+using Domain.Enums;
+using Domain.PomocneMetode.RezimiRada;
+using Domain.PomocneMetode.Temperature;
 
 namespace Services.RegulatorServices
 {
-    using Domain.Models;
-    using Domain.Services;
-    using Domain.Enums;
-    using Domain.PomocneMetode.RezimiRada;
-    using Domain.PomocneMetode.Temperature;
-
     public class RegulatorService : IRegulatorService
     {
         private readonly Regulator _regulator;
@@ -27,11 +26,14 @@ namespace Services.RegulatorServices
             _devicesService = devicesService;
             _logger = logger;
 
-            // Default vrednosti
+            // Default vrednosti - OBAVEZNO za rad bez manuelnog podešavanja
             _regulator.PocetakDnevnogRezima = 6;
             _regulator.KrajDnevnogRezima = 22;
             _regulator.TemperaturaDnevna = 22;
             _regulator.TemperaturaNocna = 18;
+            _isConfigured = true; // Označava da su default vrednosti postavljene
+
+            _logger.LogEvent("Regulator inicijalizovan sa default vrednostima - Dnevni: 6h-22h (22°C), Noćni: (18°C)");
         }
 
         public void ConfigureWorkMode(int dayStart, int dayEnd, double dayTemp, double nightTemp)
@@ -40,7 +42,7 @@ namespace Services.RegulatorServices
             _regulator.KrajDnevnogRezima = dayEnd;
             _regulator.TemperaturaDnevna = dayTemp;
             _regulator.TemperaturaNocna = nightTemp;
-            _isConfigured = true;
+            // _isConfigured je već true od konstruktora
 
             _logger.LogEvent($"Konfigurisan režim rada - Dnevni: {dayStart}h-{dayEnd}h ({dayTemp}°C), Noćni: ({nightTemp}°C)");
         }
@@ -62,10 +64,8 @@ namespace Services.RegulatorServices
                 _regulator.PocitanjaTemperature.RemoveAt(0);
             }
 
-            if (_isConfigured)
-            {
-                RegulateTemperature();
-            }
+            // Uvek reguliše jer je _isConfigured = true od početka
+            RegulateTemperature();
         }
 
         public RezimRada GetCurrentMode()
@@ -97,7 +97,7 @@ namespace Services.RegulatorServices
                 _devicesService.NotifyHeaterStateChange(true);
                 _logger.LogEvent($"Peć uključena - Prosečna: {prosecnaTemp:F1}°C, Ciljna: {ciljnaTemp}°C");
             }
-            else if (prosecnaTemp >= ciljnaTemp + 0.2 && _heaterService.IsOn())
+            else if (prosecnaTemp > ciljnaTemp + 0.2 && _heaterService.IsOn())
             {
                 _heaterService.TurnOff();
                 _devicesService.NotifyHeaterStateChange(false);

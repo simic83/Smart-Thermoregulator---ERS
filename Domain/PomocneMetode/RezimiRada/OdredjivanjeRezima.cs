@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-// OdredjivanjeRezima.cs
 namespace Domain.PomocneMetode.RezimiRada
 {
     using global::Domain.Enums;

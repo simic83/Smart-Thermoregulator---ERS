@@ -3,13 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Domain.Services;
 
-namespace Presentation.UnosPodataka
+
+namespace Presentation.Options
 {
-    public static class UnosOpsegaSati
+    public class WorkModeOption
     {
-        public static (int pocetak, int kraj) UnesiOpseg()
+        private readonly IRegulatorService _regulatorService;
+
+        public WorkModeOption(IRegulatorService regulatorService)
         {
+            _regulatorService = regulatorService;
+        }
+
+        public void Execute()
+        {
+            Console.Clear();
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("\n╔════════════════════════════════════════╗");
             Console.WriteLine("║     KONFIGURACIJA DNEVNOG REŽIMA      ║");
@@ -57,7 +67,18 @@ namespace Presentation.UnosPodataka
                 }
             }
 
-            return (pocetak, kraj);
+            // Čuva trenutne temperature
+            var currentDayTemp = _regulatorService.GetTargetTemperature();
+            var currentNightTemp = currentDayTemp;
+
+            _regulatorService.ConfigureWorkMode(pocetak, kraj, currentDayTemp, currentNightTemp);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("\n✓ Režim rada uspešno podešen!");
+            Console.ResetColor();
+
+            Console.WriteLine("\nPritisnite bilo koji taster za povratak...");
+            Console.ReadKey();
         }
     }
 }
